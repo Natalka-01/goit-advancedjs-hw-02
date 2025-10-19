@@ -2,10 +2,18 @@ import flatpickr from "flatpickr";
 
 import "flatpickr/dist/flatpickr.min.css";
 
+// Описаний у документації
+import iziToast from "izitoast";
+// Додатковий імпорт стилів
+import "izitoast/dist/css/iziToast.min.css";
+
+
+
 let userSelectedDate = null;
 
 //Get refs to the "Start" button
 const startButton = document.querySelector('[data-start]')
+const datePickerInput = document.getElementById("datetime-picker");
 
 startButton.disabled = true;
 
@@ -21,8 +29,13 @@ const options = {
 
         if (selectedDate.getTime() < now.getTime()) {
             
-            window.alert("Please choose a date in the future");
-            
+            // window.alert("Please choose a date in the future");
+            iziToast.show({
+            title: 'WARRNING',
+            message: 'Please choose a date in the future',
+            color: 'red', 
+            position: 'center', // bottomRight, bottomLeft, topRight, topLeft, topCenter, bottomCenter, center
+            });
             startButton.disabled = true;
             
             userSelectedDate = null;
@@ -44,6 +57,9 @@ startButton.addEventListener('click', () => {
    if (userSelectedDate) {
    
        timer.start();
+       startButton.disabled = true;
+       datePickerInput.disabled = true
+       
    }
 });
 
@@ -51,24 +67,37 @@ startButton.addEventListener('click', () => {
 const timer = {
     intervalId: null,
 
+    refs: {
+        days: document.querySelector('[data-days]'),
+        hours: document.querySelector('[data-hours'),
+        minutes: document.querySelector('[data-minutes'),
+        seconds: document.querySelector('[data-seconds'),
+    },
+
 
     start() {
         this.intervalId = setInterval(() => {
-            this.deadline = userSelectedDate;
-            const diff = this.deadline - Date.now();
-            // if (diff <= 0) {
-            //     this.stop();
+        this.deadline = userSelectedDate;
+        const diff = this.deadline - Date.now();
+        if (diff <= 0) {
+            this.stop();
 
-            //     return
-            // }
-        console.log(this.deadline)
-        console.log(this.convertMs(diff))
+            return
+        }
+        const {days, hours, minutes, seconds} = this.convertMs(diff)
+
+        this.refs.days.textContent = this.padDoble(days);
+        this.refs.hours.textContent = this.padDoble(hours);
+        this.refs.minutes.textContent = this.padDoble(minutes);
+        this.refs.seconds.textContent = this.padDoble(seconds);
+        
 
         }, 1000)
     },
 
     stop() {
         clearInterval(this.intervalId)
+        datePickerInput.disabled = false
     },
 
     convertMs(ms) {
@@ -92,6 +121,10 @@ const timer = {
             hours, 
             minutes, 
             seconds };
+        },
+
+        padDoble(value) {
+            return String(value).padStart(2, '0');
         },
 }
 
